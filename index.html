@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+    </style>
+    <title>yml sha512</title>
+</head>
+<body>
+    <script>
+        const {ipcRenderer} = require('electron');
+
+        function handleFileLoaded (fakePath) {
+            // C:\fakepath\ 잘라내기
+            const fileName = fakePath.substring(12);
+            // 'Rogic ' 잘라내기
+            const version = fileName.substring(6, fileName.lastIndexOf('.'));
+            // electron File 클래스는 fakePath가 아님
+            const file = document.getElementById("file-load").files[0].path;
+
+            const {createReadStream} = require('fs');
+            const {createHash} = require('crypto');
+
+            const algorithm = "sha512";
+            const encoding = "base64";
+
+            const hash = createHash(algorithm);
+            hash.on("error", (e) => {throw e}).setEncoding(encoding);
+
+            createReadStream(file, {highWaterMark: 1024 * 1024})
+                .on("error", e => {
+                    throw e
+                })
+                .on("end", () => {
+                    hash.end();
+                    const sha512 = hash.read();
+                    const option = {
+                        version: version,
+                        name: fileName,
+                        sha512: sha512
+                    }
+                    console.log(option);
+                    ipcRenderer.send('requset-latest-yml', option)
+                })
+                .pipe(hash, {end: false});
+        }
+    </script>
+    파일은 반드시 'Rogic [version].exe'(띄어쓰기 포함)으로 명명되어야 합니다.
+    <input id="file-load" type="file" accept=".exe" onchange="handleFileLoaded(this.value)" />
+</body>
+</html>

@@ -1,0 +1,13 @@
+# Editor
+/.idea
+/.vscode
+/.vs
+
+# NPM
+/node_modules
+npm-*
+
+# Build
+/dist
+/NSIS
+
